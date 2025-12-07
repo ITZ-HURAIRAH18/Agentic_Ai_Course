@@ -1,6 +1,19 @@
 from fastapi import FastAPI
-
+from post_routes import router as post_router
 app = FastAPI()
+
+@app.get("/")
+def read_root():
+    try:
+        return {
+            "data": "Hello, World!",
+            "status": 200,
+        }
+    except Exception as e:
+        return {
+            "message": str(e),
+            "status": 500,
+        }
 
 @app.get("/{item_id}/{name}")
 def read_root(item_id: int, name: str):
@@ -41,7 +54,7 @@ class Item(BaseModel):
 def create_item(item: Item):
     return {"item_name": item.name, "item_price": item.price}
 
-
+app.include_router(post_router,prefix="/posts", tags=["Posts"])
 
 
 # poetry run uvicorn main:app --reload
