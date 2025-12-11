@@ -32,6 +32,7 @@ class Users(Base):
     password = Column(String, nullable=True)
 
 
+    todos = relationship("Todos", back_populates="user", cascade="all, delete")
 
 
 class Todos(Base):
@@ -42,3 +43,4 @@ class Todos(Base):
     description = Column(String, nullable=True)
     completed = Column(Boolean, default=False)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user= relationship("Users", back_populates="todos")
