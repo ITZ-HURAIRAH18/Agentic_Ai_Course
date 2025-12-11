@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from config.database import get_db
-from models.todo_model import Todos
+from models.todo_model import Todos, Users
 
 app = FastAPI()
 todo_router = APIRouter()
@@ -16,18 +16,23 @@ class TodoCreate(BaseModel):
     description: str | None = None
     completed: bool = False
 
-
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str
 # -------------------------
 # Create Todo
 # -------------------------
-@todo_router.post("/create")
-def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
+@todo_router.post("/create/{user_id}")
+def create_todo(user_id: int, todo: TodoCreate, db: Session = Depends(get_db)):
     try:
         new_todo = Todos(
             title=todo.title,
             description=todo.description,
-            completed=todo.completed
+            completed=todo.completed,
+            user_id=user_id   # <-- IMPORTANT
         )
+        
         db.add(new_todo)
         db.commit()
         db.refresh(new_todo)
@@ -127,6 +132,28 @@ def delete_todo(todo_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+
+
+@todo_router.post("/create_user")
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    try:
+        new_user = Users(
+            name=user.name,
+            email=user.email,
+            password=user.password
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        return {
+            "status": "success",
+            "message": "User created successfully",
+            "data": new_user
+        }
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 # Include the router in the app
 app.include_router(todo_router, prefix="/todos", tags=["Todos"])
