@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, FastAPI
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from config.database import get_db
 from models.todo_model import Todos, Users
@@ -127,6 +127,40 @@ def delete_todo(todo_id: int, db: Session = Depends(get_db)):
         db.commit()
 
         return {"status": "success", "message": "Todo deleted"}
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@todo_router.get("/user/{user_id}")
+def get_todos_by_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        todos = (
+            db.query(Todos)
+            .options(joinedload(Todos.user))  # This loads user data along with todos
+            .filter(Todos.user_id == user_id)
+            .all()
+        )
+
+        data = []
+        for todo in todos:
+            data.append({
+                "id": todo.id,
+                "title": todo.title,
+                "description": todo.description,
+                "completed": todo.completed,
+                "user": {
+                    "id": todo.user.id,
+                    "name": todo.user.name,
+                    "email": todo.user.email
+                }
+            })
+
+        return {
+            "status": "success",
+            "message": f"Todos for user {user_id} fetched successfully",
+            "data": data
+        }
 
     except Exception as e:
         return {"status": "error", "message": str(e)}

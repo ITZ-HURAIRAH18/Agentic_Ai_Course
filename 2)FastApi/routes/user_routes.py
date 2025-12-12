@@ -1,15 +1,20 @@
+import token
 from config.database import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from models.todo_model import Todos, Users
 from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
+from utils.helper_function import create_access_token
+
 
 # Pydantic Models
 class UserCreate(BaseModel):
     name: str
     email: str
     password: str
-
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 class TodoCreate(BaseModel):
     title: str
     description: str | None = None
@@ -17,7 +22,7 @@ class TodoCreate(BaseModel):
 
 user_router = APIRouter()
 
-@user_router.post("/create_user")
+@user_router.post("/register")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     try:
         new_user = Users(
@@ -38,35 +43,31 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-
-@user_router.get("/user/{user_id}")
-def get_todos_by_user(user_id: int, db: Session = Depends(get_db)):
+@user_router.post("/login")
+def login_user(request: LoginRequest, db: Session = Depends(get_db)):
     try:
-        todos = (
-            db.query(Todos)
-            .options(joinedload(Todos.user))  # This loads user data along with todos
-            .filter(Todos.user_id == user_id)
-            .all()
-        )
+        user = db.query(Users).filter(
+            Users.email == request.email,
+            Users.password == request.password
+        ).first()
 
-        data = []
-        for todo in todos:
-            data.append({
-                "id": todo.id,
-                "title": todo.title,
-                "description": todo.description,
-                "completed": todo.completed,
-                "user": {
-                    "id": todo.user.id,
-                    "name": todo.user.name,
-                    "email": todo.user.email
-                }
-            })
+        # FIRST check if user exists
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        # THEN create JWT token
+        token = create_access_token(data={"sub": user.email})
+
+        user_data = {
+            "id": user.id,
+            "email": user.email,
+            "token": token
+        }
 
         return {
             "status": "success",
-            "message": f"Todos for user {user_id} fetched successfully",
-            "data": data
+            "message": "Login successful",
+            "data": {"user": user_data}
         }
 
     except Exception as e:
