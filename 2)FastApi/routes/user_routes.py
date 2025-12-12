@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.todo_model import Todos, Users
 from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
-from utils.helper_function import create_access_token
-
+from utils.helper_function import create_access_token, hash_password
+from passlib.context import CryptContext
 
 # Pydantic Models
 class UserCreate(BaseModel):
@@ -25,10 +25,13 @@ user_router = APIRouter()
 @user_router.post("/register")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     try:
+        user_hash_password=hash_password(user.password)
+        print(f"Registering user with hashed password: {user_hash_password}")
+        print("Orignal password:", user.password)
         new_user = Users(
             name=user.name,
             email=user.email,
-            password=user.password
+            password=user_hash_password
         )
         db.add(new_user)
         db.commit()
@@ -46,16 +49,14 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 @user_router.post("/login")
 def login_user(request: LoginRequest, db: Session = Depends(get_db)):
     try:
-        user = db.query(Users).filter(
-            Users.email == request.email,
-            Users.password == request.password
-        ).first()
+        # Get user by email only
+        user = db.query(Users).filter(Users.email == request.email).first()
 
-        # FIRST check if user exists
-        if not user:
+        # If user not found or password does not match
+        if not user or not verify_password(request.password, user.password):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        # THEN create JWT token
+        # Create token
         token = create_access_token(data={"sub": user.email})
 
         user_data = {

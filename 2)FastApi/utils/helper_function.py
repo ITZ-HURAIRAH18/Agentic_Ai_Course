@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
+from multiprocessing import context
 from typing import Optional
 from dotenv import load_dotenv
 import jwt
 import os
-
+from passlib.context import CryptContext
 # Load .env variables
 load_dotenv()
 
@@ -43,3 +44,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 #         print(e)
 #         return HTTPException(status_code=401, detail="Invalid token")
     
+    
+    
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password[:72], hashed_password)
+
+def hash_password(password):
+    return pwd_context.hash(password[:72])
