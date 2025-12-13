@@ -32,26 +32,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         print("JWT Error:", e)
         return None
 
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
-def get_current_user(token: str ) -> dict:
-    """
-    Verify JWT token and return decoded payload as dict
-    """
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+def verify_token(token: str = Depends(oauth2_scheme)):
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return decoded_token  # contains id, name, email, exp
+        # Make sure it contains id, name, email
+        return decoded_token
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+        raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 from passlib.context import CryptContext
 

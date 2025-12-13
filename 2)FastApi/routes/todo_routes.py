@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
 from config.database import get_db
-from models.todo_model import Todos, Users
+from models.todo_model import Todos
+from utils.helper_function import  verify_token
 app = FastAPI()
 todo_router = APIRouter()
 
@@ -22,28 +23,32 @@ class UserCreate(BaseModel):
 # -------------------------
 # Create Todo
 # -------------------------
-@todo_router.post("/create/{user_id}")
-def create_todo(user_id: int, todo: TodoCreate, db: Session = Depends(get_db)):
-    try:
-        new_todo = Todos(
-            title=todo.title,
-            description=todo.description,
-            completed=todo.completed,
-            user_id=user_id   # <-- IMPORTANT
-        )
-        
-        db.add(new_todo)
-        db.commit()
-        db.refresh(new_todo)
 
+
+@todo_router.post("/create")
+def create_todo(todo: TodoCreate, user=Depends(verify_token), db: Session  = Depends(get_db)):
+    try:
+        user_id = user.get("id")  # not user_id
+
+        db_todo = Todos(title=todo.title, description=todo.description,
+                        completed=todo.completed, user_id=user_id)
+        db.add(db_todo)
+        db.commit()
+        db.refresh(db_todo)
         return {
-            "status": "success",
+            "data": db_todo,
             "message": "Todo created successfully",
-            "data": new_todo
+            "status": "success"
+        }
+    except Exception as e:
+        print('An exception occurred')
+        print(e)
+        return {
+            "message": str(e),
+            "status": "error",
+            "data": None
         }
 
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
 
 
 # -------------------------
@@ -66,7 +71,7 @@ def get_todos(db: Session = Depends(get_db)):
 # -------------------------
 # Get Todo by ID
 # -------------------------
-@todo_router.get("/{todo_id}")
+@todo_router.get("/id/{todo_id}")
 def get_todo(todo_id: int, db: Session = Depends(get_db)):
     try:
         todo = db.query(Todos).filter(Todos.id == todo_id).first()
