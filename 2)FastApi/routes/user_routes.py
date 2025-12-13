@@ -4,8 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.todo_model import Todos, Users
 from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
-from utils.helper_function import create_access_token, hash_password
-from passlib.context import CryptContext
+from utils.helper_function import create_access_token, hash_password, verify_password
 
 # Pydantic Models
 class UserCreate(BaseModel):
@@ -49,19 +48,26 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 @user_router.post("/login")
 def login_user(request: LoginRequest, db: Session = Depends(get_db)):
     try:
-        # Get user by email only
+        # Get user by email
         user = db.query(Users).filter(Users.email == request.email).first()
 
         # If user not found or password does not match
         if not user or not verify_password(request.password, user.password):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        # Create token
-        token = create_access_token(data={"sub": user.email})
+        # Create token with id, name, email
+        token_data = {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email
+        }
+
+        token = create_access_token(data=token_data)
 
         user_data = {
             "id": user.id,
             "email": user.email,
+            "name": user.name,
             "token": token
         }
 

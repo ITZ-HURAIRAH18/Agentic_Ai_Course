@@ -1,7 +1,11 @@
 from datetime import datetime, timedelta
+from fastapi import status
+from http.client import HTTPException
 from multiprocessing import context
 from typing import Optional
 from dotenv import load_dotenv
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
 import jwt
 import os
 from passlib.context import CryptContext
@@ -15,42 +19,49 @@ print(f"Loaded SECRET_KEY: {SECRET_KEY}")
 print(f"Loaded ALGORITHM: {ALGORITHM}")
 print(f"Loaded ACCESS_TOKEN_EXPIRE_MINUTES: {ACCESS_TOKEN_EXPIRE_MINUTES}")
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """
+    Create JWT token with user info and expiration
+    """
     try:
         to_encode = data.copy()
         expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
         to_encode.update({"exp": expire})
-
         token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return token
-
     except Exception as e:
         print("JWT Error:", e)
         return None
 
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
+def get_current_user(token: str ) -> dict:
+    """
+    Verify JWT token and return decoded payload as dict
+    """
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return decoded_token  # contains id, name, email, exp
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
 
-# def verify_token(token: str = Depends(oauth2_scheme)):
-#     try:
-#         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]) # type: ignore
-#         if decoded_token:
-#             return decoded_token
-#         else:
-#             return HTTPException(status_code=401, detail="Token not parseable")
-#     except jwt.ExpiredSignatureError:
-#         raise HTTPException(status_code=401, detail="Token expired")
-#     except jwt.InvalidTokenError:
-#         raise HTTPException(status_code=401, detail="Invalid token")
-#     except Exception as e:
-#         print('An exception occurred')
-#         print(e)
-#         return HTTPException(status_code=401, detail="Invalid token")
-    
-    
-    
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from passlib.context import CryptContext
 
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256"],
+    deprecated="auto"
+)
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password[:72], hashed_password)
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 
-def hash_password(password):
-    return pwd_context.hash(password[:72])
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
