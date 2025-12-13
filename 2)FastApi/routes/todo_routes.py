@@ -55,7 +55,7 @@ def create_todo(todo: TodoCreate, user=Depends(verify_token), db: Session  = Dep
 # Get All Todos
 # -------------------------
 @todo_router.get("/")
-def get_todos(db: Session = Depends(get_db)):
+def get_todos( user=Depends(verify_token),db: Session = Depends(get_db)):
     try:
         todos = db.query(Todos).all()
         return {
