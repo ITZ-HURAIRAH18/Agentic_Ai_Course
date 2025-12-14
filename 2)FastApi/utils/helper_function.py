@@ -5,7 +5,7 @@ from multiprocessing import context
 from typing import Optional
 from dotenv import load_dotenv
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer,APIKeyHeader
 import jwt
 import os
 from passlib.context import CryptContext
@@ -15,9 +15,10 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-print(f"Loaded SECRET_KEY: {SECRET_KEY}")
-print(f"Loaded ALGORITHM: {ALGORITHM}")
-print(f"Loaded ACCESS_TOKEN_EXPIRE_MINUTES: {ACCESS_TOKEN_EXPIRE_MINUTES}")
+API_KEY_NAME = "x-api-key"
+# print(f"Loaded SECRET_KEY: {SECRET_KEY}")
+# print(f"Loaded ALGORITHM: {ALGORITHM}")
+# print(f"Loaded ACCESS_TOKEN_EXPIRE_MINUTES: {ACCESS_TOKEN_EXPIRE_MINUTES}")
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
     Create JWT token with user info and expiration
@@ -56,3 +57,17 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
+
+
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+def verify_api_key(api_key_header: str = Depends(api_key_header)):
+    try:
+        # query api keys table to check if api key exists and is active, and userid match the one in the token
+        # db_api_key = get_api_key(userId)
+        if api_key_header == os.getenv("API_KEY"):
+            return api_key_header
+        else:
+            raise HTTPException(status_code=401, detail="Invalid API Key")
+    except Exception as e:
+      print('An exception occurred',e)
+      raise HTTPException(status_code=401, detail="Invalid API Key")

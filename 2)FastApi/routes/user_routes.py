@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.todo_model import Todos, Users
 from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
-from utils.helper_function import create_access_token, hash_password, verify_password
+from utils.helper_function import create_access_token, hash_password, verify_api_key, verify_password
 
 # Pydantic Models
 class UserCreate(BaseModel):
@@ -45,7 +45,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-@user_router.post("/login")
+@user_router.post("/login", dependencies=[Depends(verify_api_key)])
 def login_user(request: LoginRequest, db: Session = Depends(get_db)):
     try:
         # Get user by email
