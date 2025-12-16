@@ -21,7 +21,8 @@ dependencies = [
     "numpy>=2,<2.3.0",
     "matplotlib>=3.10.8,<4.0.0",
     "pandas>=2.3.3,<3.0.0",
-    "opencv-python (>=4.12.0.88,<5.0.0.0)"
+    "opencv-python (>=4.12.0.88,<5.0.0.0)",
+    "tensorflow (>=2.20.0,<3.0.0)"
 ]
 
 [build-system]
