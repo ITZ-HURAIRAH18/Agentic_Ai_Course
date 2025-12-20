@@ -6,7 +6,8 @@ authors = [
     { name = "ITZ-HURAIRAH18", email = "muhammadabuhurairah558@gmail.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<4.0"
+
 dependencies = [
     "python-dotenv>=1.2.1,<2.0.0",
     "fastapi[standard]>=0.124.0,<0.125.0",
@@ -22,7 +23,11 @@ dependencies = [
     "matplotlib>=3.10.8,<4.0.0",
     "pandas>=2.3.3,<3.0.0",
     "opencv-python (>=4.12.0.88,<5.0.0.0)",
-    "tensorflow (>=2.20.0,<3.0.0)"
+    "tensorflow (>=2.20.0,<3.0.0)",
+    "langchain-google-genai (>=4.1.2,<5.0.0)",
+    "openai (>=2.14.0,<3.0.0)",
+    "agents (>=1.4.0,<2.0.0)",
+    "pydantic-ai (>=1.37.0,<2.0.0)"
 ]
 
 [build-system]

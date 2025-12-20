@@ -1,0 +1,40 @@
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Large data files
+*.csv
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# Image directories (too large for git)
+4)Model Development/cats/
+4)Model Development/dogs/
+4)Model Development/data/
+
+# Model files (too large)
+*.model
+*.weights
+*.ckpt
+*.pb
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Test images
+*.jpg
+*.jpeg
+*.png
