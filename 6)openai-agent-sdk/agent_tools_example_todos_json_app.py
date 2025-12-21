@@ -13,7 +13,6 @@ gemini_api_key = os.getenv('GOOGLE_API_KEY')
 client = AsyncOpenAI(
     api_key=gemini_api_key,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-    default_headers={"x-goog-api-key": gemini_api_key}
 )
 
 
@@ -66,7 +65,7 @@ def add_todo(title: str, description: str = "", due_date: str = "") -> Dict[str,
 
         # Append and save
         todos.append(new_todo)
-        with open("todos.json", "w") as file:
+        with open("08_openai-agent-sdk/todos.json", "w") as file:
             json.dump(todos, file, indent=2)
 
         return new_todo
