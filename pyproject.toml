@@ -29,6 +29,7 @@ dependencies = [
     "pydantic-ai (>=1.37.0,<2.0.0)",
     "openai-agents (>=0.6.4,<0.7.0)",
     "requests (>=2.32.5,<3.0.0)",
+    "tavily-python (>=0.7.17,<0.8.0)",
 ]
 
 [build-system]
