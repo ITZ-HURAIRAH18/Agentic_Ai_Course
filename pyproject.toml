@@ -6,7 +6,7 @@ authors = [
     { name = "ITZ-HURAIRAH18", email = "muhammadabuhurairah558@gmail.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.13,<4.0"
+requires-python = ">=3.13,<3.15"
 
 dependencies = [
     "python-dotenv>=1.2.1,<2.0.0",
@@ -32,6 +32,8 @@ dependencies = [
     "tavily-python (>=0.7.17,<0.8.0)",
     "langgraph (>=1.0.5,<2.0.0)",
     "langchain (>=1.2.0,<2.0.0)",
+    "langchain-community (>=0.4.1,<0.5.0)",
+    "faiss-cpu (>=1.13.2,<2.0.0)",
 ]
 
 [build-system]
