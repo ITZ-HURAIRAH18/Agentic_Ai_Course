@@ -7,13 +7,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-llm = GoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=os.getenv("GOOGLE_API_KEY"))
+llm = GoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=os.getenv("GOOGLE_API_KEY"))
 
 memory = ConversationBufferWindowMemory(k=5)
 
 loader = None
 try:
-    loader = TextLoader("./data/data.txt")
+    loader = TextLoader("/data.txt")
 except Exception as e:
     print("Error while loading file=", e)
 
