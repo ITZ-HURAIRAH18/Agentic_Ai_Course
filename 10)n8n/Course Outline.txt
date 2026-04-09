@@ -1,0 +1,7 @@
+Module 1: Ai Automation fundamentals 
+Module 2:n8n Basic to Advanced
+Module 3:Api and Data masterclass
+Module 4:n8n (future skills)
+Module 5:n8n (job Level Skills)
+Module 6:Real World Project
+Module 7:Career , Freelancing
