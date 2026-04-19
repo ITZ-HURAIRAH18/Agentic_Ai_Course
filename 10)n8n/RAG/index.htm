@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zodiac AI | Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        .glass { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .dot-pulse { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-200 min-h-screen flex items-center justify-center p-4">
+    
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-900/20 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 blur-[120px] rounded-full"></div>
+    </div>
+
+    <div class="w-full max-w-lg glass rounded-[2.5rem] p-8 md:p-10 shadow-2xl animate-float">
+        <div class="text-center mb-8">
+            <div class="inline-block p-3 rounded-2xl bg-indigo-600/20 mb-4">
+                <i class="fa-solid fa-brain text-indigo-400 text-3xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight text-white">Zodiac <span class="text-indigo-500">AI</span></h1>
+            <p class="text-slate-400 text-sm mt-2 font-medium">Next-Gen Document Intelligence</p>
+        </div>
+
+        <div class="space-y-6">
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-indigo-400 mb-2 px-1">Source Document</label>
+                <div class="relative group">
+                    <input type="file" id="pdfFile" accept=".pdf" 
+                        class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer bg-slate-900/50 rounded-2xl border border-slate-700 p-2 transition-all group-hover:border-indigo-500/50">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-indigo-400 mb-2 px-1">Your Query</label>
+                <input type="text" id="question" placeholder="What is the launch date?" 
+                    class="w-full bg-slate-900/50 border border-slate-700 rounded-2xl py-4 px-5 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all">
+            </div>
+
+            <button onclick="sendData()" id="btnAction"
+                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-6 rounded-2xl transition-all active:scale-[0.98] shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Analyze Document</span>
+            </button>
+        </div>
+
+        <div id="responseBox" class="hidden mt-8 transition-all duration-500">
+            <div class="p-6 bg-slate-900/80 rounded-3xl border border-indigo-500/30 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                
+                <div id="loadingUI" class="flex flex-col items-start gap-3">
+                    <p class="text-indigo-400 text-xs font-bold uppercase tracking-tighter">AI is thinking...</p>
+                    <div class="flex gap-1.5">
+                        <div class="w-2.5 h-2.5 bg-indigo-500 rounded-full dot-pulse"></div>
+                        <div class="w-2.5 h-2.5 bg-indigo-500 rounded-full dot-pulse [animation-delay:0.2s]"></div>
+                        <div class="w-2.5 h-2.5 bg-indigo-500 rounded-full dot-pulse [animation-delay:0.4s]"></div>
+                    </div>
+                </div>
+
+                <div id="actualResponse" class="hidden">
+                    <p class="text-indigo-400 text-xs font-bold uppercase tracking-tighter mb-2">Analysis Result</p>
+                    <p id="responseText" class="text-slate-200 leading-relaxed text-sm italic"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    async function sendData() {
+        const fileInput = document.getElementById('pdfFile');
+        const questionInput = document.getElementById('question');
+        const responseBox = document.getElementById('responseBox');
+        const loadingUI = document.getElementById('loadingUI');
+        const actualResponse = document.getElementById('actualResponse');
+        const responseText = document.getElementById('responseText');
+        const btnAction = document.getElementById('btnAction');
+
+        if (!fileInput.files[0] || !questionInput.value) {
+            alert("Please select a PDF and enter your question.");
+            return;
+        }
+
+        // UI Loading State
+        responseBox.classList.remove('hidden');
+        loadingUI.classList.remove('hidden');
+        actualResponse.classList.add('hidden');
+        btnAction.disabled = true;
+        btnAction.classList.add('opacity-50');
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('chatInput', questionInput.value);
+
+        try {
+            const response = await fetch('http://localhost:5678/webhook-test/ff8fd72a-209f-4ebe-9a12-f30db81c2c47', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.text();
+
+            loadingUI.classList.add('hidden');
+            actualResponse.classList.remove('hidden');
+           
+            responseText.innerText = data || "No response received from AI.";
+
+        } catch (error) {
+            loadingUI.classList.add('hidden');
+            actualResponse.classList.remove('hidden');
+            responseText.innerText = "Error: " + error.message;
+        } finally {
+            btnAction.disabled = false;
+            btnAction.classList.remove('opacity-50');
+        }
+    }
+</script>
+</body>
+</html>
